@@ -1,0 +1,14 @@
+﻿git命令
+
+git clone git@github.com:SummerInSun/digital-book	复制github上面的项目
+git init 	初始化一个git目录
+git status	查看当前项目的状态
+git add -A	添加所有的文件到git项目
+git commit -m "descript" 提交
+git tag v1	打标签
+git push -u git@github.com:SummerInSun/digital-book.git master
+git br <new branch>	创建新的分支
+git br --merged	查看被合并到当前分支的分支
+git co <branch>	切换到某个分支
+git merge <branch>	将某个分支合并到当前分支
+git checkout v1 取出版本v1
