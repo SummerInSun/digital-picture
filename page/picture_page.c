@@ -30,6 +30,10 @@ static struct DisLayout g_tPictureDisLayout;
 #define ZOOM_RATIO 0.9
 #define SLIP_MIN_DISTANCE 4*4
 
+#define DEFAULT_AUTOPLAY_DIR "/etc/digitalpic/icons"
+
+static char g_strSelDirPath[256] = DEFAULT_AUTOPLAY_DIR;
+
 static struct PiexlDatasDesc g_tOriginPicDatas;
 static struct PiexlDatasDesc g_tZoomPicDatas;
 
@@ -45,6 +49,12 @@ static struct PageOpr g_tPicturePageOpr = {
 	.GetInputEvent = PictureGetInputEvent,
 //	.Prepare  =    /* 后台准备函数，待实现 */
 };
+
+void GetSelectedAutoPageDir(char *strDirName)
+{
+	strncpy(strDirName, g_strSelDirPath, 256);
+	strDirName[255] = '\0';
+}
 
 static void CalcPicturePageMenusLayout(struct PageLayout *ptPageLayout)
 {
@@ -69,8 +79,6 @@ static void CalcPicturePageMenusLayout(struct PageLayout *ptPageLayout)
 
 	iIconTotal = sizeof(g_atPicturePageIconsLayout) / sizeof(struct DisLayout) - 1;
 	iProportion = 2000;	/* 图像与间隔的比例 */
-
-	DebugPrint(DEBUG_DEBUG"iIconTotal = %d\n", iIconTotal);
 
 	/* 计算高，图像间距，宽 */
 	iHeight = iYres * iProportion / 
@@ -190,14 +198,11 @@ static int GeneratePicture(char *strPath, struct VideoMem *ptVideoMem)
 
 	GetDisDeviceSize(&iXres, &iYres, &iBpp);
 
-	DebugPrint(DEBUG_DEBUG"Run to GeneratePicture \n");
-
 	ptPicDatas = GetPicPiexlDataFromFile(strPath);
 	if(NULL == ptPicDatas){
 		return -1;
 	}
-	DebugPrint(DEBUG_DEBUG"Run to GeneratePicture \n");
-
+	
 	iPicWidth  = g_tPictureDisLayout.iBotRightX - g_tPictureDisLayout.iTopLeftX;
 	iPicHeight = g_tPictureDisLayout.iBotRightY - g_tPictureDisLayout.iTopLeftY;
 
@@ -239,8 +244,8 @@ static int GeneratePicture(char *strPath, struct VideoMem *ptVideoMem)
 #endif
 	iCenterTopLeftX = g_tPictureDisLayout.iTopLeftX + (iPicWidth - ptZoomPicDatas->iWidth) / 2;
 	iCenterTopLeftY = g_tPictureDisLayout.iTopLeftY + (iPicHeight - ptZoomPicDatas->iHeight) / 2;
-	DebugPrint(DEBUG_DEBUG"Run to GeneratePicture \n");
 
+	/* 该中心点是图片区的中点 */
 	g_iPicCenterXPos = g_tPictureDisLayout.iTopLeftX
 		+ (g_tPictureDisLayout.iBotRightX - g_tPictureDisLayout.iTopLeftX) / 2;
 	g_iPicCenterYPos = g_tPictureDisLayout.iTopLeftY
@@ -305,10 +310,12 @@ static void ShowZoomPic(struct PiexlDatasDesc *ptZoomPicDatas, struct VideoMem *
 static void ShowSlidePic(struct PiexlDatasDesc *ptZoomPicDatas, struct VideoMem *ptDevVideoMem)
 {
 	int iTopLeftX, iTopLeftY;
-	
+
+	/* 首先计算左上角的坐标值 */
 	iTopLeftX = g_iPicCenterXPos - g_tZoomPicDatas.iWidth / 2;
 	iTopLeftY = g_iPicCenterYPos - g_tZoomPicDatas.iHeight / 2;
-	
+
+	/* 界定边界值，如果超过边界要进行限制 */
 	if(iTopLeftX < g_tPictureDisLayout.iTopLeftX){
 		iTopLeftX = g_tPictureDisLayout.iTopLeftX;
 		g_iPicCenterXPos = iTopLeftX + g_tZoomPicDatas.iWidth / 2;
@@ -359,17 +366,6 @@ static void ShowPicturePage(struct PageLayout *ptPageLayout, char *strPath)
 	ReleaseVideoMem(ptVideoMem);
 }
 
-static int DisOfTwoPoint(struct InputEvent *ptPreEvent, struct InputEvent *ptCurEvent)
-{
-	int iDistanceX;
-	int iDistanceY;
-
-	iDistanceX = ptCurEvent->iXPos - ptPreEvent->iXPos;
-	iDistanceY = ptCurEvent->iYPos - ptPreEvent->iYPos;
-
-	return iDistanceX*iDistanceX + iDistanceY*iDistanceY;
-}
-
 static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 {
 	int iIndex;
@@ -388,6 +384,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 	struct DirContent *ptDirContents;
 	int iDirContentsNumber;
 	int iPicFileIndex;
+	int iCurPicIndex = 0;
 
 	struct VideoMem *ptVideoMem;
 	int iXres, iYres, iBpp;
@@ -410,6 +407,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 	/* 确定当前文件所在的位置 */
 	for(iPicFileIndex = 0; iPicFileIndex < iDirContentsNumber; iPicFileIndex ++){
 		if(0 == strcmp(strCurFileName, ptDirContents[iPicFileIndex].strDirName)){
+			iCurPicIndex = iPicFileIndex;
 			break;
 		}
 	}
@@ -433,9 +431,9 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 			ReleaseButton(&g_atPicturePageIconsLayout[iIndexPressed]);
 
 			/* 在不同一个按钮按下与松开 */
-			if(iIndexPressed != iIndex){
-				goto nextwhilecircle;
-			}
+//			if(iIndexPressed != iIndex){
+//				goto nextwhilecircle;
+//			}
 			
 			switch(iIndexPressed){
 				case 0: {
@@ -458,6 +456,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 					break;
 				}
 				case 3: {  /* 上一张 */
+					iPicFileIndex = iCurPicIndex;
 					while(iPicFileIndex > 0){
 						iPicFileIndex --;
 						
@@ -467,6 +466,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 							
 							if(isPictureSupported(strFullPathName)){
 								ShowPicturePage(&g_tPicturePageMenuLayout, strFullPathName);
+								iCurPicIndex = iPicFileIndex;
 								break;
 							}
 						}
@@ -474,6 +474,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 					break;
 				}
 				case 4: {  /* 下一张 */
+					iPicFileIndex = iCurPicIndex;
 					while(iPicFileIndex < iDirContentsNumber - 1){
 						iPicFileIndex ++;
 						
@@ -483,14 +484,19 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 							
 							if(isPictureSupported(strFullPathName)){
 								ShowPicturePage(&g_tPicturePageMenuLayout, strFullPathName);
+								iCurPicIndex = iPicFileIndex;
 								break;
 							}
 						}
 					}
 					break;
 				}
-				case 5: {
-					DebugPrint(DEBUG_DEBUG"do 5****************\n");
+				case 5: {    /* 连播 */
+					strcpy(g_strSelDirPath, strCurDirPath);
+					g_strSelDirPath[255] = '\0';
+
+					GetPageOpr("auto")->RunPage(&tPageIdentify);
+					ShowPicturePage(&g_tPicturePageMenuLayout, strFullPathName);
 					break;
 				}
 				default: {
@@ -499,7 +505,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 				}
 			}
 		}else{
-			if(iIndex == -1){
+			if(iIndex == -1){    /* 说明没有按在菜单上面 */
 				
 				if(0 == bSlipPic){
 					bSlipPic = 1;
@@ -512,7 +518,7 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 					g_iPicCenterYPos += tInputEvent.iYPos - tSlipInputEvent.iYPos;
 					ShowSlidePic(&g_tZoomPicDatas, ptVideoMem);
 
-					tSlipInputEvent = tInputEvent;
+					tSlipInputEvent = tInputEvent;  /* 重新标定位置与时间 */
 				}
 				goto nextwhilecircle;
 			}

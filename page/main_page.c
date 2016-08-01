@@ -49,8 +49,6 @@ static void CalcMainPageLayout(struct PageLayout *ptPageLayout)
 	iIconTotal = sizeof(g_atMainPageIconsLayout) / sizeof(struct DisLayout) - 1;
 	iProportion = 4;	/* 图像与间隔的比例 */
 
-	DebugPrint(DEBUG_DEBUG"iIconTotal = %d\n", iIconTotal);
-
 	/* 计算高，图像间距，宽 */
 	iHeight = iYres * iProportion / 
 		(iProportion * iIconTotal + iIconTotal + 1);
@@ -112,6 +110,7 @@ static void ShowMainPage(struct PageLayout *ptPageLayout)
 static void MainRunPage(struct PageIdetify *ptParentPageIdentify)
 {
 	int iIndex;
+	int iError = 0;
 	int iIndexPressed = -1;	/* 判断是否是在同一个图标上按下与松开 */
 	int bPressedFlag = 0;
 	struct InputEvent tInputEvent;
@@ -131,33 +130,33 @@ static void MainRunPage(struct PageIdetify *ptParentPageIdentify)
 				ReleaseButton(&g_atMainPageIconsLayout[iIndexPressed]);
 
 				/* 在同一个按钮按下与松开 */
-				if(iIndexPressed == iIndex){
-					switch(iIndexPressed){
-						case 0: {
-							GetPageOpr("browse")->RunPage(&tMainPageIdentify);
-							ShowMainPage(&g_tMainPageLayout);
-							break;
-						}
-						case 1: {
-							DebugPrint(DEBUG_DEBUG"do 1****************\n");
-							break;
-						}
-						case 2: {
-							GetPageOpr("setting")->RunPage(&tMainPageIdentify);
-							DebugPrint(DEBUG_DEBUG"do 2****************\n");
-							ShowMainPage(&g_tMainPageLayout);
-							break;
-						}
-						case 3: {
-							return; /* 退出整个程序 */
-						}
-						default: {
-							DebugPrint(DEBUG_EMERG"Somthing wrong\n");
-							break;
-						}
+//				if(iIndexPressed != iIndex){
+//					goto nextwhilecircle;
+//				}
+				switch(iIndexPressed){
+					case 0: {
+						GetPageOpr("browse")->RunPage(&tMainPageIdentify);
+						ShowMainPage(&g_tMainPageLayout);
+						break;
+					}
+					case 1: {
+						GetPageOpr("auto")->RunPage(&tMainPageIdentify);
+						ShowMainPage(&g_tMainPageLayout);
+						break;
+					}
+					case 2: {
+						GetPageOpr("setting")->RunPage(&tMainPageIdentify);
+						ShowMainPage(&g_tMainPageLayout);
+						break;
+					}
+					case 3: {
+						return; /* 退出整个程序 */
+					}
+					default: {
+						DebugPrint(DEBUG_EMERG"Somthing wrong\n");
+						break;
 					}
 				}
-
 				iIndexPressed = -1;
 			}
 		}else{
@@ -169,7 +168,9 @@ static void MainRunPage(struct PageIdetify *ptParentPageIdentify)
 
 				}			
 			}
-		}	
+		}
+nextwhilecircle:
+	iError = 0;
 	}
 }
 

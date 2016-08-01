@@ -64,6 +64,18 @@ int PagesInit(void)
 		return -1;
 	}
 
+	iError = IntervalPageInit();
+	if(iError){
+		DebugPrint("IntervalPageInit error\n");
+		return -1;
+	}
+
+	iError = AutoPageInit();
+	if(iError){
+		DebugPrint("AutoPageInit error\n");
+		return -1;
+	}
+
 	iError = PicturePageInit();
 	if(iError){
 		DebugPrint("PicturePageInit error\n");
@@ -75,7 +87,13 @@ int PagesInit(void)
 
 int GetID(char *pcName)
 {
-	return (int)(pcName[0] + pcName[1] + pcName[2] + pcName[3]);
+	return (int)(pcName[0] + pcName[1] + pcName[2] + pcName[3] + pcName[4]);
+}
+
+void GetPageConfig(struct PageConfig *ptPageConfig)
+{
+	GetSelectedAutoPageDir(ptPageConfig->strDirName);
+	GetIntervalTime(&ptPageConfig->iIntervalSec);
 }
 
 int GenericGetInputEvent(struct PageLayout *ptPageLayout, struct InputEvent *ptInputEvent)
@@ -114,5 +132,16 @@ int GenericGetInputEvent(struct PageLayout *ptPageLayout, struct InputEvent *ptI
 	}
 
 	return -1;
+}
+
+int DisOfTwoPoint(struct InputEvent *ptPreEvent, struct InputEvent *ptCurEvent)
+{
+	int iDistanceX;
+	int iDistanceY;
+
+	iDistanceX = ptCurEvent->iXPos - ptPreEvent->iXPos;
+	iDistanceY = ptCurEvent->iYPos - ptPreEvent->iYPos;
+
+	return (iDistanceX*iDistanceX + iDistanceY*iDistanceY);
 }
 

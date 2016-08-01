@@ -37,7 +37,6 @@ static int BrowseGetInputEvent(struct PageLayout *ptPageLayout, struct InputEven
 #define DIR_FILE_ALL_HEIGHT  DIR_FILE_ALL_WIDTH
 
 static char g_strCurDirPath[256] = DEFAULT_DIR;
-static char g_strSelDirPath[256] = DEFAULT_DIR;
 
 /* 文件与目录的事件编号 */
 #define DIRFILE_ICON_BASE 256
@@ -215,11 +214,6 @@ static int CalcBrowsePageFilesLayout()
 	iTopLeftY = iTopLeftY + iDeltaY;
 	iTopLeftXBak = iTopLeftX;
 
-	DebugPrint("iDeltaX = %d\n", iDeltaX);
-	DebugPrint("iDeltaY = %d\n", iDeltaY);
-	DebugPrint("iTopLeftX = %d\n", iTopLeftX);
-	DebugPrint("iTopLeftY = %d\n", iTopLeftY);
-
 	k = 0;
 	for(i = 0; i < g_iDirFileNumPerCol; i ++){
 		for(j = 0;j < g_iDirFileNumPerRow; j ++){
@@ -274,7 +268,6 @@ static int GenerateDirAndFileIcons(struct PageLayout *ptPageLayout)
 	/* 为打开/关闭目录以及普通文件分配空间 */
 	g_tDirOpenedIconPiexlDatas.iBpp = iBpp;
 	g_tDirOpenedIconPiexlDatas.pucPiexlDatasMem = malloc(ptPageLayout->iMaxTotalBytes);
-	DebugPrint("malloc size %d", ptPageLayout->iMaxTotalBytes);
 		
 	if(NULL == g_tDirOpenedIconPiexlDatas.pucPiexlDatasMem){
 		DebugPrint(DEBUG_ERR"malloc g_tDirOpenedIconPiexlDatas error\n");
@@ -306,8 +299,6 @@ static int GenerateDirAndFileIcons(struct PageLayout *ptPageLayout)
 	g_tDirOpenedIconPiexlDatas.iWidth  = atLayout[0].iBotRightX - atLayout[0].iTopLeftX + 1;
 	g_tDirOpenedIconPiexlDatas.iLineLength = g_tDirOpenedIconPiexlDatas.iWidth * iBpp / 8;
 	g_tDirOpenedIconPiexlDatas.iTotalLength = g_tDirOpenedIconPiexlDatas.iLineLength * g_tDirOpenedIconPiexlDatas.iLineLength;
-
-	DebugPrint("GenerateDirAndFileIcons get here 1\n");
 	
 	PicZoomOpr(&tOriginIconPiexlDatas, &g_tDirOpenedIconPiexlDatas);
 	FreePiexlDatasForIcon(&tOriginIconPiexlDatas);
@@ -417,10 +408,7 @@ static void ShowBrowsePage(struct PageLayout *ptPageLayout)
 	}
 
 	GeneratePage(ptPageLayout, ptVideoMem);
-	DebugPrint("ShowBrowsePage get here \n");
 	GenerateBrowsePageDirAndFile(g_iFileStartIndex, g_iDirContentsNumber, g_ptDirContents, ptVideoMem);
-
-	DebugPrint("ShowBrowsePage get here \n");
 
 	FlushVideoMemToDev(ptVideoMem);
 
@@ -445,6 +433,16 @@ static int GetInputPosition(struct PageLayout *ptPageLayout, struct InputEvent *
 	}
 
 	return -1;
+}
+
+static void SelectDirForAutoPage(struct DisLayout *ptDisLayout, struct VideoMem *ptVideoMem)
+{
+	PicMergeOpr(ptDisLayout->iTopLeftX, ptDisLayout->iTopLeftY, &g_tDirOpenedIconPiexlDatas, &ptVideoMem->tPiexlDatas);
+}
+
+static void DeselectDirForAutoPage(struct DisLayout *ptDisLayout, struct VideoMem *ptVideoMem)
+{
+	PicMergeOpr(ptDisLayout->iTopLeftX, ptDisLayout->iTopLeftY, &g_tDirClosedIconPiexlDatas, &ptVideoMem->tPiexlDatas);
 }
 
 static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
@@ -516,10 +514,10 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 				bPressedFlag = 0;
 				ReleaseButton(&g_atBrowsePageIconsLayout[iIndexPressed]);
 
-				/* 在不同的按钮按下与松开，继续下一个循环 */
-				if(iIndexPressed == iIndex){
-					goto nextwhilecircle;
-				}
+				/* 在不同一个按钮按下与松开 */
+//				if(iIndexPressed != iIndex){
+//					goto nextwhilecircle;
+//				}
 				
 				/* 在同一个按钮按下与松开 */
 				switch(iIndexPressed){
@@ -547,6 +545,7 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 					}
 					/* 选择 */
 					case 1: {
+						ReleaseButton(&g_atBrowsePageIconsLayout[iIndexPressed]);
 						break;
 					}
 					/* 上一页 */
@@ -578,9 +577,15 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 						break;
 					}
 				}
-			}else{
+			}else{				
+				
 				bPressedFlag = 0;
 				ReleaseButton(&g_atFileDirIconLayout[iIndexPressed - DIRFILE_ICON_BASE]);
+
+				/* 在不同一个按钮按下与松开 */
+//				if(iIndexPressed != iIndex){
+//					goto nextwhilecircle;
+//				}
 
 				/* 如果是目录就进入 */
 				iDirFileContentIndex = g_iFileStartIndex + (iIndexPressed - DIRFILE_ICON_BASE) / 2;
@@ -619,7 +624,7 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 				if(iIndexPressed == 0){
 					tPrePressInputEvent = tInputEvent;   /* 记录第一次按下的事件 */
 				}
-				
+
 				if(iIndexPressed < DIRFILE_ICON_BASE){					
 					PressButton(&g_atBrowsePageIconsLayout[iIndexPressed]);
 				}else{
