@@ -85,7 +85,8 @@ int GetPiexlDatasForPic(char *pcName, struct PiexlDatasDesc *ptPiexlData)
 
 void FreePiexlDatasForIcon(struct PiexlDatasDesc *ptPiexlData)
 {
-	GetPicFmtParser("bmp")->FreePiexlDatas(ptPiexlData);
+	//GetPicFmtParser("bmp")->FreePiexlDatas(ptPiexlData);
+	free(ptPiexlData->pucPiexlDatasMem);
 }
 
 void FlushVideoMemToDev(struct VideoMem *ptFlushVideoMem)
@@ -121,22 +122,26 @@ int GeneratePage(struct PageLayout *ptPageLayout, struct VideoMem *ptVideoMem)
 
 		/* Ñ­»·Ëõ·ÅÍ¼±ê */
 		while(aIconDisLayout->pcIconName){
-			iError = GetPiexlDatasForIcons(aIconDisLayout->pcIconName, &tOriginIconDatas);
-			if(iError){
-				DebugPrint(DEBUG_ERR"GetPiexlDatasForIcons error\n");
-				free(tIcondatas.pucPiexlDatasMem);
-				return -1;
+			if(aIconDisLayout->pcIconName[0] != ' '){
+				
+				iError = GetPiexlDatasForIcons(aIconDisLayout->pcIconName, &tOriginIconDatas);
+				if(iError){
+					DebugPrint(DEBUG_ERR"GetPiexlDatasForIcons error\n");
+					free(tIcondatas.pucPiexlDatasMem);
+					return -1;
+				}
+				
+				tIcondatas.iHeight = aIconDisLayout->iBotRightY - aIconDisLayout->iTopLeftY;
+				tIcondatas.iWidth  = aIconDisLayout->iBotRightX - aIconDisLayout->iTopLeftX;
+				tIcondatas.iLineLength	= tIcondatas.iWidth * tIcondatas.iBpp / 8;
+				tIcondatas.iTotalLength = tIcondatas.iLineLength * tIcondatas.iHeight;
+				
+				PicZoomOpr(&tOriginIconDatas, &tIcondatas);
+				PicMergeOpr(aIconDisLayout->iTopLeftX, aIconDisLayout->iTopLeftY, 
+					&tIcondatas, &ptVideoMem->tPiexlDatas);
+				
 			}
-
-			tIcondatas.iHeight = aIconDisLayout->iBotRightY - aIconDisLayout->iTopLeftY;
-			tIcondatas.iWidth  = aIconDisLayout->iBotRightX - aIconDisLayout->iTopLeftX;
-			tIcondatas.iLineLength  = tIcondatas.iWidth * tIcondatas.iBpp / 8;
-			tIcondatas.iTotalLength = tIcondatas.iLineLength * tIcondatas.iHeight;
-
-			PicZoomOpr(&tOriginIconDatas, &tIcondatas);
-			PicMergeOpr(aIconDisLayout->iTopLeftX, aIconDisLayout->iTopLeftY, 
-				&tIcondatas, &ptVideoMem->tPiexlDatas);
-
+			
 			aIconDisLayout ++;
 		}
 
@@ -457,23 +462,17 @@ int isPictureSupported(char *pcName)
 
 	snprintf(tPicFileDesc.cFileName, 256, "%s", pcName);
 	tPicFileDesc.cFileName[255] = '\0';
-	
-	DebugPrint(DEBUG_DEBUG"Run to isPictureSupported\n");
-	
+		
 	iError = GetFileDesc(&tPicFileDesc);
 	if(iError){
 		DebugPrint(DEBUG_ERR"Get file descript error int isPictureSupported\n");
 		return 0;
 	}
 
-	DebugPrint(DEBUG_DEBUG"Run to isPictureSupported\n");
-
 	if(NULL == GetSupportedParser(&tPicFileDesc)){
 		ReleaseFileDesc(&tPicFileDesc);
 		return 0;
 	}
-
-	DebugPrint(DEBUG_DEBUG"Run to isPictureSupported\n");
 
 	ReleaseFileDesc(&tPicFileDesc);
 	return 1;

@@ -9,6 +9,12 @@
 #include <string.h>
 #include <render.h>
 
+struct FileAndDirLayout
+{
+	char *strName;
+	struct PiexlDatasDesc *ptPiexlDatas;
+};
+
 static struct DisLayout g_atBrowsePageIconsLayout[] = {
 	{0, 0, 0, 0, "up.bmp"},
 	{0, 0, 0, 0, "select.bmp"},
@@ -45,9 +51,6 @@ static char g_strCurDirPath[256] = DEFAULT_DIR;
 static struct DirContent *g_ptDirContents;
 static int g_iDirContentsNumber;
 static int g_iFileStartIndex = 0;
-static char *g_strOpenedDirIconPath = "fold_opened.bmp";
-static char *g_strClosedDirIconPath = "fold_closed.bmp";
-static char *g_strFileIconPath = "file.bmp";
 
 /* 图标 */
 static int g_iDirFileNumPerRow;
@@ -56,6 +59,17 @@ static int g_iDirFileNumPerCol;
 static struct PiexlDatasDesc g_tDirClosedIconPiexlDatas;
 static struct PiexlDatasDesc g_tDirOpenedIconPiexlDatas;
 static struct PiexlDatasDesc g_tFileIconPiexlDatas;
+static struct PiexlDatasDesc g_tUnknowIconPiexlDatas;
+static struct PiexlDatasDesc g_tTxtIconPiexlDatas;
+
+struct FileAndDirLayout g_atBrowsePageFileAndDirIcons[] = {
+	{"fold_opened.bmp", &g_tDirOpenedIconPiexlDatas},
+	{"fold_closed.bmp", &g_tDirClosedIconPiexlDatas},
+	{"file.bmp", &g_tFileIconPiexlDatas},
+	{"unknow.bmp", &g_tUnknowIconPiexlDatas},
+	{"txt.bmp", &g_tTxtIconPiexlDatas},
+	{NULL, NULL},
+};
 
 static struct DisLayout  *g_atFileDirIconLayout;
 static struct PageLayout g_tFileDirPageLayout = {
@@ -66,7 +80,6 @@ static struct PageOpr g_tBrowsePageOpr = {
 	.name = "browse",
 	.RunPage = BrowseRunPage,
 	.GetInputEvent = BrowseGetInputEvent,
-//	.Prepare  =    /* 后台准备函数，待实现 */
 };
 
 static void CalcBrowsePageMenusLayout(struct PageLayout *ptPageLayout)
@@ -255,6 +268,8 @@ static int GenerateDirAndFileIcons(struct PageLayout *ptPageLayout)
 	int iYres;
 	int iBpp;
 	struct DisLayout *atLayout;
+	int iIconNum;
+	int iIconNumIndex;
 
 	/* 用于确定图标的大小 */
 	atLayout = ptPageLayout->atDisLayout;
@@ -265,72 +280,52 @@ static int GenerateDirAndFileIcons(struct PageLayout *ptPageLayout)
 		return -1;
 	}
 
-	/* 为打开/关闭目录以及普通文件分配空间 */
-	g_tDirOpenedIconPiexlDatas.iBpp = iBpp;
-	g_tDirOpenedIconPiexlDatas.pucPiexlDatasMem = malloc(ptPageLayout->iMaxTotalBytes);
+	iIconNum = sizeof(g_atBrowsePageFileAndDirIcons) / sizeof(struct FileAndDirLayout) - 1;
+
+	for(iIconNumIndex = 0; iIconNumIndex < iIconNum; iIconNumIndex ++){
+		/* 为打开/关闭目录以及普通文件分配空间 */
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iBpp = iBpp;
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->pucPiexlDatasMem = malloc(ptPageLayout->iMaxTotalBytes);
+			
+		if(NULL == g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->pucPiexlDatasMem){
+			DebugPrint(DEBUG_ERR"malloc %s's memory error\n", g_atBrowsePageFileAndDirIcons[iIconNumIndex].strName);
+			return -1;
+		}
+
 		
-	if(NULL == g_tDirOpenedIconPiexlDatas.pucPiexlDatasMem){
-		DebugPrint(DEBUG_ERR"malloc g_tDirOpenedIconPiexlDatas error\n");
-		return -1;
+		/* 分配完之后提取数据 */
+		iError = GetPiexlDatasForIcons(g_atBrowsePageFileAndDirIcons[iIconNumIndex].strName, &tOriginIconPiexlDatas);
+		if(iError){
+			DebugPrint(DEBUG_ERR"get %s error\n", g_atBrowsePageFileAndDirIcons[iIconNumIndex].strName);
+			return -1;
+		}
+		
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iHeight = atLayout[0].iBotRightY - atLayout[0].iTopLeftY + 1;
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iWidth  = atLayout[0].iBotRightX - atLayout[0].iTopLeftX + 1;
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iLineLength = g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iWidth * iBpp / 8;
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iTotalLength = g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iLineLength * g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->iLineLength;
+		
+		PicZoomOpr(&tOriginIconPiexlDatas, g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas);
+		FreePiexlDatasForIcon(&tOriginIconPiexlDatas);
 	}
-
-	g_tDirClosedIconPiexlDatas.iBpp = iBpp;
-	g_tDirClosedIconPiexlDatas.pucPiexlDatasMem = malloc(ptPageLayout->iMaxTotalBytes);
-	if(NULL == g_tDirClosedIconPiexlDatas.pucPiexlDatasMem){
-		DebugPrint(DEBUG_ERR"malloc g_tDirClosedIconPiexlDatas error\n");
-		return -1;
-	}
-
-	g_tFileIconPiexlDatas.iBpp = iBpp;
-	g_tFileIconPiexlDatas.pucPiexlDatasMem = malloc(ptPageLayout->iMaxTotalBytes);
-	if(NULL == g_tFileIconPiexlDatas.pucPiexlDatasMem){
-		DebugPrint(DEBUG_ERR"malloc g_tFileIconPiexlDatas error\n");
-		return -1;
-	}
-
-	/* 分配完之后提取数据 */
-	iError = GetPiexlDatasForIcons(g_strOpenedDirIconPath, &tOriginIconPiexlDatas);
-	if(iError){
-		DebugPrint(DEBUG_ERR"get g_tDirOpenedIconPiexlDatas error\n");
-		return -1;
-	}
-
-	g_tDirOpenedIconPiexlDatas.iHeight = atLayout[0].iBotRightY - atLayout[0].iTopLeftY + 1;
-	g_tDirOpenedIconPiexlDatas.iWidth  = atLayout[0].iBotRightX - atLayout[0].iTopLeftX + 1;
-	g_tDirOpenedIconPiexlDatas.iLineLength = g_tDirOpenedIconPiexlDatas.iWidth * iBpp / 8;
-	g_tDirOpenedIconPiexlDatas.iTotalLength = g_tDirOpenedIconPiexlDatas.iLineLength * g_tDirOpenedIconPiexlDatas.iLineLength;
-	
-	PicZoomOpr(&tOriginIconPiexlDatas, &g_tDirOpenedIconPiexlDatas);
-	FreePiexlDatasForIcon(&tOriginIconPiexlDatas);
-	
-	iError = GetPiexlDatasForIcons(g_strClosedDirIconPath, &tOriginIconPiexlDatas);
-	if(iError){
-		DebugPrint(DEBUG_ERR"get g_tDirClosedIconPiexlDatas error\n");
-		return -1;
-	}
-
-	g_tDirClosedIconPiexlDatas.iHeight = atLayout[0].iBotRightY - atLayout[0].iTopLeftY + 1;
-	g_tDirClosedIconPiexlDatas.iWidth  = atLayout[0].iBotRightX - atLayout[0].iTopLeftX + 1;
-	g_tDirClosedIconPiexlDatas.iLineLength = g_tDirClosedIconPiexlDatas.iWidth * iBpp / 8;
-	g_tDirClosedIconPiexlDatas.iTotalLength = g_tDirClosedIconPiexlDatas.iLineLength * g_tDirClosedIconPiexlDatas.iLineLength;
-
-	PicZoomOpr(&tOriginIconPiexlDatas, &g_tDirClosedIconPiexlDatas);
-	FreePiexlDatasForIcon(&tOriginIconPiexlDatas);
-
-	iError = GetPiexlDatasForIcons(g_strFileIconPath, &tOriginIconPiexlDatas);
-	if(iError){
-		DebugPrint(DEBUG_ERR"get g_strFileIconPath error\n");
-		return -1;
-	}
-	g_tFileIconPiexlDatas.iHeight = atLayout[0].iBotRightY - atLayout[0].iTopLeftY + 1;
-	g_tFileIconPiexlDatas.iWidth  = atLayout[0].iBotRightX - atLayout[0].iTopLeftX + 1;
-	g_tFileIconPiexlDatas.iLineLength = g_tFileIconPiexlDatas.iWidth * iBpp / 8;
-	g_tFileIconPiexlDatas.iTotalLength = g_tFileIconPiexlDatas.iLineLength * g_tFileIconPiexlDatas.iLineLength;
-
-	PicZoomOpr(&tOriginIconPiexlDatas, &g_tFileIconPiexlDatas);
-	FreePiexlDatasForIcon(&tOriginIconPiexlDatas);
 
 	return 0;
+}
+
+void FreeDirAndFileIcons(void)
+{
+	int iIconNum;
+	int iIconNumIndex;
+
+	iIconNum = sizeof(g_atBrowsePageFileAndDirIcons) / sizeof(struct FileAndDirLayout) - 1;
+
+	for(iIconNumIndex = 0; iIconNumIndex < iIconNum; iIconNumIndex ++){
+		free(g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->pucPiexlDatasMem);
+		g_atBrowsePageFileAndDirIcons[iIconNumIndex].ptPiexlDatas->pucPiexlDatasMem = NULL;
+	}
+
+	/* 图标的 dislayout，整个程序周期只申请一次内存 */
+	free(g_atFileDirIconLayout);
 }
 
 /* iNum 是总的图标的数量 */
@@ -341,6 +336,7 @@ static int GenerateBrowsePageDirAndFile(int iStart, int iNum, struct DirContent 
 	struct DisLayout tCleanDisLayout;
 	int i, j, k;
 	int iIndex;
+	char strTmp[256];
 
 	ptPageLayout = &g_tFileDirPageLayout;
 	atDisLayout = ptPageLayout->atDisLayout;
@@ -363,7 +359,13 @@ static int GenerateBrowsePageDirAndFile(int iStart, int iNum, struct DirContent 
 				if(atDirContent[iIndex].eFileType == DIR_FILE){
 					PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tDirClosedIconPiexlDatas, &ptVideoMem->tPiexlDatas);
 				}else{
-					PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tFileIconPiexlDatas, &ptVideoMem->tPiexlDatas);					
+					snprintf(strTmp, 256, "%s/%s", g_strCurDirPath, atDirContent[iIndex].strDirName);
+					strTmp[255] = '\0';
+					if(isPictureSupported(strTmp)){
+						PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tFileIconPiexlDatas, &ptVideoMem->tPiexlDatas);					
+					}else{
+						PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tUnknowIconPiexlDatas, &ptVideoMem->tPiexlDatas);					
+					}
 				}
 
 				k ++;
@@ -403,7 +405,7 @@ static void ShowBrowsePage(struct PageLayout *ptPageLayout)
 	}
 	
 	/* 获取各个类型文件图标的点阵信息，存放到全局变量里面 */
-	if(!g_tDirClosedIconPiexlDatas.pucPiexlDatasMem){
+	if(!g_atBrowsePageFileAndDirIcons[0].ptPiexlDatas->pucPiexlDatasMem){
 		GenerateDirAndFileIcons(&g_tFileDirPageLayout);
 	}
 
@@ -420,7 +422,7 @@ static int GetInputPosition(struct PageLayout *ptPageLayout, struct InputEvent *
 	int iFileNum = 0;
 	struct DisLayout *atLayout = ptPageLayout->atDisLayout;
 
-	while(atLayout[iFileNum].pcIconName){
+	while(iFileNum < (g_iDirContentsNumber * 2)){
 		if(ptInputEvent->iXPos <= atLayout[iFileNum].iBotRightX
 			&& ptInputEvent->iXPos >= atLayout[iFileNum].iTopLeftX
 			&& ptInputEvent->iYPos <= atLayout[iFileNum].iBotRightY

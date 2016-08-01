@@ -51,6 +51,19 @@ struct PrintOpr *GetPrintOpr(char *pcName)
 	return NULL;
 }
 
+void PrintDeviceExit(void)
+{
+	int iPTNum = 0;
+	struct list_head *ptLHTmpPos;	//LH = lis_head
+	struct PrintOpr *ptPOTmpPos;
+	
+	LIST_FOR_EACH_ENTRY_H(ptLHTmpPos, &g_tPrintOprHead){
+		ptPOTmpPos = LIST_ENTRY(ptLHTmpPos, struct PrintOpr, tPrintOpr);
+
+		ptPOTmpPos->PrintDeviceExit();
+	}	
+}
+
 int PrintDeviceInit(void)
 {
 	int iError = 0;

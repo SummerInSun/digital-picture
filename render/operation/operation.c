@@ -36,7 +36,6 @@ int PicZoomOpr(struct PiexlDatasDesc *ptOrigin, struct PiexlDatasDesc *ptZoom)
 	dwZoomWidth  = ptZoom->iWidth;
 	dwZoomHeight = ptZoom->iHeight;
 	dwPiexlBytes = ptOrigin->iBpp / 8;
-	DebugPrint(DEBUG_DEBUG"dwPiexlBytes = %d\n", dwPiexlBytes);
 
 	/* 如果两者的像素宽度不一致就不进行缩放 */
 	if(ptOrigin->iBpp != ptZoom->iBpp){
@@ -94,7 +93,6 @@ int PicZoomOprBackup(struct PiexlDatasDesc *ptOrigin, struct PiexlDatasDesc *ptZ
 	dwZoomWidth  = ptZoom->iWidth;
 	dwZoomHeight = ptZoom->iHeight;
 	dwPiexlBytes = ptOrigin->iBpp / 8;
-	DebugPrint(DEBUG_DEBUG"dwPiexlBytes = %d\n", dwPiexlBytes);
 
 	/* 如果两者的像素宽度不一致就不进行缩放 */
 	if(ptOrigin->iBpp != ptZoom->iBpp){

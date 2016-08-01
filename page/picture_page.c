@@ -437,7 +437,12 @@ static void PictureRunPage(struct PageIdetify *ptParentPageIdentify)
 			
 			switch(iIndexPressed){
 				case 0: {
+					free(g_tZoomPicDatas.pucPiexlDatasMem);
+					g_tZoomPicDatas.pucPiexlDatasMem = NULL;
+					free(g_tOriginPicDatas.pucPiexlDatasMem);
+					g_tOriginPicDatas.pucPiexlDatasMem = NULL;
 					free(ptDirContents);
+					ptDirContents = NULL;
 					return; /* 退出整个程序 */
 					break;
 				}

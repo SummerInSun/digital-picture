@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 		DebugPrint("Input device init error\n");
 		goto error_exit;
 	}
+	DebugPrint("\nSupported input device\n");
 	ShowInputOpr();
 	
 	iError = PicFmtInit();
@@ -86,6 +87,7 @@ int main(int argc, char *argv[])
 		DebugPrint("Picture format init error\n");
 		goto error_exit;
 	}
+	DebugPrint("\nSupported picture format\n");
 	ShowPicFmtParser();
 
 	iError = AllocVideoMem(5);
@@ -99,6 +101,7 @@ int main(int argc, char *argv[])
 		DebugPrint("Page init error\n");
 		goto error_exit;
 	}
+	DebugPrint("\nCreated pages\n");
 	ShowPageOpr();
 	
 	ptMainPageOpr = GetPageOpr("main");
@@ -109,9 +112,9 @@ int main(int argc, char *argv[])
 	
 	ptMainPageOpr->RunPage(&tPageIdetify);
 
-	DebugPrint("Find segment fault\n");
-
 	FreeAllVideoMem();
+	FreeDirAndFileIcons();
+	PrintDeviceExit();
 
 exit:
 	return 0;

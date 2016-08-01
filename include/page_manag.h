@@ -7,10 +7,19 @@
 #include <input_manag.h>
 #include <dis_manag.h>
 
+/* 确定点击一个按键时按下与松开点的最大距离 */
+//#define CONFIRM_CLICK_DISTANCE 200*200
+
 struct PageIdetify
 {
 	int iPageID;
 	char strCurPicFile[256];	/* 要处理的第一个图片文件 */
+};
+
+struct PageConfig
+{
+	int iIntervalSec;
+	char strDirName[256];   /* 播放哪个目录下的图片文件 */
 };
 
 struct PageLayout
@@ -41,8 +50,15 @@ int MainPageInit(void);
 int SettingPageInit(void);
 int BrowsePageInit(void);
 int PicturePageInit(void);
+int IntervalPageInit(void);
+int AutoPageInit(void);
 int GetID(char *pcName);
 int GenericGetInputEvent(struct PageLayout *ptPageLayout, struct InputEvent *ptInputEvent);
+void GetSelectedAutoPageDir(char *strDirName);
+void GetIntervalTime(int *piIntervalTime);
+void GetPageConfig(struct PageConfig *ptPageConfig);
+int DisOfTwoPoint(struct InputEvent *ptPreEvent, struct InputEvent *ptCurEvent);
+void FreeDirAndFileIcons(void);
 
 #endif
 

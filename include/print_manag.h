@@ -20,6 +20,7 @@ struct PrintOpr *GetPrintOpr(char *pcName);
 int ConsolePrintInit(void);
 void ConsolePrintExit(void);
 int NetPrintInit(void);
+void PrintDeviceExit(void);
 void NetPrintExit(void);
 int PrintDeviceInit(void);
 int DebugPrint(const char *cFormat, ...);
