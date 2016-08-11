@@ -154,7 +154,7 @@ static int GenerateIntervalTimeIcon(int iSecTime, struct VideoMem *ptVideoMem)
 
 	snprintf(strTextString, 3, "%02d", iSecTime);
 
-	return MergeString(g_tSecNumDisLayout.iTopLeftX, g_tSecNumDisLayout.iTopLeftY, g_tSecNumDisLayout.iBotRightX, g_tSecNumDisLayout.iBotRightY, (unsigned char*)strTextString, ptVideoMem);
+	return MergeString(g_tSecNumDisLayout.iTopLeftX, g_tSecNumDisLayout.iTopLeftY, g_tSecNumDisLayout.iBotRightX, g_tSecNumDisLayout.iBotRightY, (unsigned char*)strTextString, ptVideoMem, CONFIG_BACKGROUND_COLOR);
 }
 
 static void ShowIntervalPage(struct PageLayout *ptPageLayout)

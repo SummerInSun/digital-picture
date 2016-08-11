@@ -22,7 +22,7 @@ static int g_iTSXres;
 static int g_iTSYres;
 static int g_iBpp;
 static struct timeval g_tPreTimeVal;
-static struct timeval g_tCurTimeVal;
+//static struct timeval g_tCurTimeVal;
 
 struct InputOpr g_tTSInputOpr = {
 	.name = "touchsrceen-input",
@@ -68,6 +68,7 @@ static int TSInputDeviceInit(void)
 	return GetDisDeviceSize(&g_iTSXres, &g_iTSYres, &g_iBpp);
 }
 
+#if 0
 static int OutOfTimeToSet(struct timeval *ptPreTime, struct timeval *ptCurTime)
 {
 	int iPreTime, iCurTime;
@@ -81,7 +82,7 @@ static int OutOfTimeToSet(struct timeval *ptPreTime, struct timeval *ptCurTime)
 
 	return 0;
 }
-
+#endif
 static int TSGetInputEvent(struct InputEvent *ptInputEvent)
 {	
 	struct ts_sample tTSSample;

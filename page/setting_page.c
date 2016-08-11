@@ -166,7 +166,7 @@ static void SettingRunPage(struct PageIdetify *ptParentPageIdentify)
 				}			
 			}
 		}	
-nextwhilecircle:
+//nextwhilecircle:
 	iError = 0;		
 	}
 }

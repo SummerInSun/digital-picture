@@ -69,7 +69,6 @@ static struct VideoMem *PrepareNextPicture(int bCur)
 		g_iCurFileNum ++;
 		g_iCurFileNum = g_iCurFileNum % g_iFileNumTotal;
 	}
-	DebugPrint(DEBUG_ERR"Run to PrepareNextPicture\n");
 	iError = GetPiexlDatasForPic(strTmp, &tOriginPiexlDatas);
 	if(iError){
 		DebugPrint(DEBUG_ERR"Can't GetPiexlDatasForPic int PrepareNextPicture\n");
@@ -79,7 +78,6 @@ static struct VideoMem *PrepareNextPicture(int bCur)
 	tZoomPiexlDatas.iBpp    = tOriginPiexlDatas.iBpp;
 	tZoomPiexlDatas.iWidth  = tOriginPiexlDatas.iWidth;
 	tZoomPiexlDatas.iHeight = tOriginPiexlDatas.iHeight;
-	DebugPrint(DEBUG_ERR"Run to PrepareNextPicture\n");
 	/* 
 	 * 计算宽高比，有两种情况，一种是图片宽比高大，一种与之相反
 	 * 两种分别比较屏幕的宽与图片的宽，和屏幕的高与图片的高

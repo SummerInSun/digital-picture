@@ -27,9 +27,11 @@ $(subdir-y):
 	@ make -C $@ -f $(TOP_DIR)/Makefile.build
 
 built-in.o : $(cur_objs) $(subdir_objs)
+	@ echo "LD built-in.o"
 	@ $(LD) -r -o $@ $^
 
 %.o : %.c
+	@ echo CC $< $@
 	@ $(CC) $(CFLAGS) -Wp,-MD,.$@.d -c -o $@ $<
 
 .PHONY : $(PHONY)

@@ -8,6 +8,7 @@
 #include <picfmt_manag.h>
 #include <pic_operation.h>
 #include <page_manag.h>
+#include <music_manag.h>
 #include <file.h>
 #include <draw.h>
 #include <ft2build.h>
@@ -95,6 +96,14 @@ int main(int argc, char *argv[])
 		DebugPrint("Alloc video memory error\n");
 		goto error_exit;
 	}
+
+	iError = MusicParserInit();
+	if(iError){
+		DebugPrint("MusicParser init error\n");
+		goto error_exit;
+	}
+	DebugPrint("\nSupported music\n");
+	ShowMusicParser();
 	
 	iError = PagesInit();
 	if(iError){

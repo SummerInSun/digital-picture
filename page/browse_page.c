@@ -4,10 +4,11 @@
 #include <dis_manag.h>
 #include <file.h>
 #include <font_manag.h>
+#include <music_manag.h>
 #include <render.h>
+
 #include <stdlib.h>
 #include <string.h>
-#include <render.h>
 
 struct FileAndDirLayout
 {
@@ -61,6 +62,7 @@ static struct PiexlDatasDesc g_tDirOpenedIconPiexlDatas;
 static struct PiexlDatasDesc g_tFileIconPiexlDatas;
 static struct PiexlDatasDesc g_tUnknowIconPiexlDatas;
 static struct PiexlDatasDesc g_tTxtIconPiexlDatas;
+static struct PiexlDatasDesc g_tMusicIconPiexlDatas;
 
 struct FileAndDirLayout g_atBrowsePageFileAndDirIcons[] = {
 	{"fold_opened.bmp", &g_tDirOpenedIconPiexlDatas},
@@ -68,6 +70,7 @@ struct FileAndDirLayout g_atBrowsePageFileAndDirIcons[] = {
 	{"file.bmp", &g_tFileIconPiexlDatas},
 	{"unknow.bmp", &g_tUnknowIconPiexlDatas},
 	{"txt.bmp", &g_tTxtIconPiexlDatas},
+	{"music.bmp", &g_tMusicIconPiexlDatas},
 	{NULL, NULL},
 };
 
@@ -363,6 +366,8 @@ static int GenerateBrowsePageDirAndFile(int iStart, int iNum, struct DirContent 
 					strTmp[255] = '\0';
 					if(isPictureSupported(strTmp)){
 						PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tFileIconPiexlDatas, &ptVideoMem->tPiexlDatas);					
+					}else if(isMusicSupported(strTmp)){
+						PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tMusicIconPiexlDatas, &ptVideoMem->tPiexlDatas);
 					}else{
 						PicMergeOpr(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY, &g_tUnknowIconPiexlDatas, &ptVideoMem->tPiexlDatas);					
 					}
@@ -373,7 +378,7 @@ static int GenerateBrowsePageDirAndFile(int iStart, int iNum, struct DirContent 
 				/* 显示名字 */
 				MergeString(atDisLayout[k].iTopLeftX, atDisLayout[k].iTopLeftY,
 								atDisLayout[k].iBotRightX, atDisLayout[k].iBotRightY,
-								(unsigned char *)atDirContent[iIndex].strDirName, ptVideoMem);
+								(unsigned char *)atDirContent[iIndex].strDirName, ptVideoMem, CONFIG_BACKGROUND_COLOR);
 
 				k ++;
 				iIndex ++;
@@ -436,7 +441,7 @@ static int GetInputPosition(struct PageLayout *ptPageLayout, struct InputEvent *
 
 	return -1;
 }
-
+#if 0
 static void SelectDirForAutoPage(struct DisLayout *ptDisLayout, struct VideoMem *ptVideoMem)
 {
 	PicMergeOpr(ptDisLayout->iTopLeftX, ptDisLayout->iTopLeftY, &g_tDirOpenedIconPiexlDatas, &ptVideoMem->tPiexlDatas);
@@ -446,17 +451,17 @@ static void DeselectDirForAutoPage(struct DisLayout *ptDisLayout, struct VideoMe
 {
 	PicMergeOpr(ptDisLayout->iTopLeftX, ptDisLayout->iTopLeftY, &g_tDirClosedIconPiexlDatas, &ptVideoMem->tPiexlDatas);
 }
-
+#endif
 static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 {
 	int iIndex;
 	struct InputEvent tInputEvent;
 	struct InputEvent tPrePressInputEvent;
 
-	int bUsedToSelectDir = 0;    /* 是否是用来选择连播图片的 */
-	int bIconPressed = 0;        /* 当前页面是否有图标按下 */
+//	int bUsedToSelectDir = 0;    /* 是否是用来选择连播图片的 */
+//	int bIconPressed = 0;        /* 当前页面是否有图标按下 */
 
-	int bHaveClickSelectIcon = 0;
+//	int bHaveClickSelectIcon = 0;
 	
 	int iIndexPressed = -1;
 	int iDirFileContentIndex;
@@ -475,9 +480,9 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 	tPrePressInputEvent.tTimeVal.tv_usec = 0;
 
 	/* 说明是为了设置连播目录 */
-	if(ptParentPageIdentify->iPageID == GetID("setting")){
-		bUsedToSelectDir = 1;
-	}
+//	if(ptParentPageIdentify->iPageID == GetID("setting")){
+//		bUsedToSelectDir = 1;
+//	}
 
 	ptDevVideoMem = GetDevVideoMem(); /* 获得默认显示设备的显存 */
 
@@ -612,6 +617,11 @@ static void BrowseRunPage(struct PageIdetify *ptParentPageIdentify)
 						GetPageOpr("picture")->RunPage(&tBrowsePageIdentify);
 						ShowBrowsePage(&g_tBrowsePageLayout);
 					}
+					if(isMusicSupported(tBrowsePageIdentify.strCurPicFile)){
+						tBrowsePageIdentify.iPageID = GetID("browse");
+						GetPageOpr("music")->RunPage(&tBrowsePageIdentify);
+						ShowBrowsePage(&g_tBrowsePageLayout);
+					}
 				}
 			}	
 		}else{  /* 按钮按下 */
@@ -664,5 +674,4 @@ int BrowsePageInit(void)
 {
 	return RegisterPageOpr(&g_tBrowsePageOpr);
 }
-
 

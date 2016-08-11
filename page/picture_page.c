@@ -349,7 +349,7 @@ static void ShowPicturePage(struct PageLayout *ptPageLayout, char *strPath)
 
 	ptVideoMem = GetVideoMem(GetID("picture"), 1);
 	if(NULL == ptVideoMem){
-		DebugPrint(DEBUG_ERR"malloc browse VideoMem error\n");
+		DebugPrint(DEBUG_ERR"malloc picture VideoMem error\n");
 		return;
 	}
 

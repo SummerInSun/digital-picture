@@ -38,7 +38,6 @@ static struct DisOpr *g_ptDisOpr;
 static struct FilePageDesc *g_ptPages   = NULL;
 static struct FilePageDesc * g_ptCurPage = NULL;
 
-
 int OpenTextFile(char *pcFileName)
 {
 	int iError = 0;

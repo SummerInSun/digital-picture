@@ -59,7 +59,6 @@ void SetFontSize(unsigned int dwFontSize)
 
 int SetFontsDetail(char *pcFontName, char *pcFontFile, unsigned int dwFontSize)
 {
-	int iError = 0;
 	struct FontOpr *ptFontOpr;
 
 	ptFontOpr = GetFontOpr(pcFontName);

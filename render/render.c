@@ -85,7 +85,6 @@ int GetPiexlDatasForPic(char *pcName, struct PiexlDatasDesc *ptPiexlData)
 
 void FreePiexlDatasForIcon(struct PiexlDatasDesc *ptPiexlData)
 {
-	//GetPicFmtParser("bmp")->FreePiexlDatas(ptPiexlData);
 	free(ptPiexlData->pucPiexlDatasMem);
 }
 
@@ -246,7 +245,6 @@ int SetColorForOnePiexl(int iPenX, int iPeny, unsigned int dwColor, struct Video
 	return 0;
 }
 
-
 static int isInArea(int iTopLeftX, int iTopLeftY, int iBotRightX, int iBotRightY, struct FontBitMap *ptFontBitmap)
 {
 	if(ptFontBitmap->iXLeft >= iTopLeftX 
@@ -316,8 +314,32 @@ static int MergeOneFontToVideoMem(struct FontBitMap *ptFontBitMap, struct VideoM
 	return 0;
 }
 
+int ShowRectangle(int iTopLeftX, int iTopLeftY, int iBotRightX, int iBotRightY, unsigned int dwColor, struct VideoMem *ptVideoMem)
+{
+	unsigned char *pucMemStart = ptVideoMem->tPiexlDatas.pucPiexlDatasMem;
+	int iXres, iYres, iBpp;
+	int iDrawLineIndex;
+	int iDrawWidthIndex;
 
-int MergeString(int iTopLeftX, int iTopLeftY, int iBotRightX, int iBotRightY, unsigned char *strTextString, struct VideoMem *ptVideoMem)
+	GetDisDeviceSize(&iXres, &iYres, &iBpp);
+
+	if(iTopLeftX < 0 || iBotRightX > iXres
+		|| iTopLeftY < 0 || iBotRightY > iYres)
+	{
+		DebugPrint("Out of range in ShowRectangle\n");
+		return -1;
+	}
+
+	for(iDrawLineIndex = iTopLeftY; iDrawLineIndex < iBotRightY; iDrawLineIndex ++){
+		for(iDrawWidthIndex = iTopLeftX; iDrawWidthIndex < iBotRightX; iDrawWidthIndex ++){
+			SetColorForOnePiexl(iDrawWidthIndex, iDrawLineIndex, dwColor, ptVideoMem);
+		}
+	}
+
+	return 0;	
+}
+
+int MergeString(int iTopLeftX, int iTopLeftY, int iBotRightX, int iBotRightY, unsigned char *strTextString, struct VideoMem *ptVideoMem, unsigned int dwColor)
 {
 	struct DisLayout tClearRegionDisLayout;
 
@@ -347,7 +369,7 @@ int MergeString(int iTopLeftX, int iTopLeftY, int iBotRightX, int iBotRightY, un
 	tClearRegionDisLayout.iTopLeftY  = iTopLeftY;
 	tClearRegionDisLayout.iBotRightX = iBotRightX;
 	tClearRegionDisLayout.iBotRightY = iBotRightY;
-	ClearVideoMemRegion(ptVideoMem, &tClearRegionDisLayout, CONFIG_BACKGROUND_COLOR);
+	ClearVideoMemRegion(ptVideoMem, &tClearRegionDisLayout, dwColor);
 
 	tFontBitmap.iCurOriginX = 0;
 	tFontBitmap.iCurOriginY = 0;

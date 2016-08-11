@@ -50,6 +50,7 @@ int MainPageInit(void);
 int SettingPageInit(void);
 int BrowsePageInit(void);
 int PicturePageInit(void);
+int MusicPageInit(void);
 int IntervalPageInit(void);
 int AutoPageInit(void);
 int GetID(char *pcName);

@@ -81,6 +81,7 @@ static int isDir(char *strFilePath, char *strFileName)
 	return 0;
 }
 
+#if 0
 static int isNormalDir(char *strFilePath, char *strSubDirName)
 {
 	static const char *aSpecialDirs[] = {"sbin", "bin", "usr", "lib", "proc", "tmp", "dev", "sys", NULL};
@@ -100,6 +101,7 @@ static int isNormalDir(char *strFilePath, char *strSubDirName)
 
 	return 1;
 }
+#endif
 
 int GetDirContents(char *strcDirName, struct DirContent **aptDirContents, int *piFileNum)
 {

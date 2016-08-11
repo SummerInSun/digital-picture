@@ -33,7 +33,7 @@ static void JPGErrorExit(j_common_ptr ptCInfo)
 
 	/* 创建信息 */
 	(*ptCInfo->err->format_message)(ptCInfo, errStr);
-	DebugPrint("%s\n", errStr);
+//	DebugPrint("%s\n", errStr);
 
 	longjmp(ptJPGError->setjmp_buffer, 1);
 }
@@ -121,7 +121,7 @@ static int JPGGetPiexlDatas(struct FileDesc *ptFileDesc, struct PiexlDatasDesc *
 	int iLineBufferLength;
 	int iSacnlines;
 	struct JPGErrorMgr tJerr;
-    int iRet;
+//    int iRet;
 
 	/* 由于文件的流读取之后不会改变，但是 jpg 解码要从第一个字节开始，所以要重新置0 */
     fseek(ptFileDesc->ptFp, 0, SEEK_SET);

@@ -53,7 +53,6 @@ struct PrintOpr *GetPrintOpr(char *pcName)
 
 void PrintDeviceExit(void)
 {
-	int iPTNum = 0;
 	struct list_head *ptLHTmpPos;	//LH = lis_head
 	struct PrintOpr *ptPOTmpPos;
 	

@@ -82,6 +82,12 @@ int PagesInit(void)
 		return -1;
 	}
 
+	iError = MusicPageInit();
+	if(iError){
+		DebugPrint("MusicPageInit error\n");
+		return -1;
+	}
+
 	return 0;
 }
 

@@ -17,10 +17,9 @@ export OBJDUMP OBJCOPY STRIP
 CFLAGS := -Wall -O2 -g
 CFLAGS += -I $(shell pwd)/include
 CFLAGS += -I $(shell pwd)/include/system
-CFLAGS += -I /work/tools/opt/FriendlyARM/toolschain/4.4.3/arm-none-linux-gnueabi/include/freetype2
-CFLAGS += -I /work/tools/usr/local/arm/4.3.2/arm-none-linux-gnueabi/libc/usr/include
+#CFLAGS += -I /work/tools/usr/local/arm/4.3.2/arm-none-linux-gnueabi/libc/usr/include
 
-LDFLAGS := -lm -lfreetype -lts -lpthread -ljpeg
+LDFLAGS := -lm -lfreetype -lts -lpthread -ljpeg -lmad -lasound
 export CFLAGS LDFLAGS
 
 TOP_DIR := $(shell pwd)
@@ -39,9 +38,11 @@ obj-y += netprint/
 obj-y += render/
 obj-y += file/
 obj-y += page/
+obj-y += music/
 
 all :
 	@ make -C ./ -f $(TOP_DIR)/Makefile.build
+	@ echo "CC test"
 	@ $(CC) $(LDFLAGS) -o $(TARGET) built-in.o
 
 clean :
